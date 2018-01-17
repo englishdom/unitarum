@@ -8,36 +8,17 @@ use Unitarum\OptionsInterface;
 
 class OptionsTest extends TestCase
 {
-    /**
-     * @var OptionsInterface
-     */
-    private $options;
-
-    public function setUp()
-    {
-        $this->options = new Options();
-    }
-
-    public function testSetFixtureFolder()
+    public function testOptionsConstructor()
     {
         $fixtureFolder = 'data';
-        $this->options->setFixtureFolder($fixtureFolder);
-        $this->assertEquals($fixtureFolder, $this->options->getFixtureFolder());
-    }
-
-    public function testParseOptions()
-    {
-        $fixtureFolder = 'data';
-        $options = [
-            OptionsInterface::FIXTURE_FOLDER_OPTION => $fixtureFolder
+        $dsn = 'dsn:';
+        $params = [
+            OptionsInterface::FIXTURE_FOLDER_OPTION => $fixtureFolder,
+            OptionsInterface::DSN_OPTION => $dsn
         ];
 
-        $this->options->parse($options);
-        $this->assertEquals($fixtureFolder, $this->options->getFixtureFolder());
-    }
-
-    public function testPDOConnectionOptions()
-    {
-
+        $options = new Options($params);
+        $this->assertEquals($fixtureFolder, $options->getFixtureFolder());
+        $this->assertEquals($dsn, $options->getDsn());
     }
 }

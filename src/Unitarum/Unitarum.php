@@ -20,11 +20,6 @@ class Unitarum
     protected $reader;
 
     /**
-     * @var \SplObjectStorage
-     */
-    protected $collection;
-
-    /**
      * Unitarum constructor.
      * @param OptionsInterface|array $options
      */
@@ -40,8 +35,7 @@ class Unitarum
     public function setOptions($options): self
     {
         if (is_array($options)) {
-            $this->options = new Options();
-            $this->options->parse($options);
+            $this->options = new Options($options);
         } elseif ($options instanceof OptionsInterface) {
             $this->options = $options;
         } else {
@@ -66,7 +60,10 @@ class Unitarum
         /* Read default data from file */
         $data = $this->getReader()->read($fixtureName);
         /* The data change in dataSet */
-
+//        $incomeData = isset($arguments[0]) ? $arguments[0] : [];
+//        $originalData = array_values($data)[0];
+//        $changedData = $this->mergeArrays($originalData, $incomeData);
+//        var_dump($changedData); die();
         /* The data append */
         return $this;
     }
@@ -77,7 +74,7 @@ class Unitarum
     public function getReader(): ReaderInterface
     {
         if (!$this->reader instanceof ReaderInterface) {
-            $this->reader = new Reader($this->options->getFixtureFolder());
+            $this->reader = new Reader($this->options);
         }
         return $this->reader;
     }
@@ -90,16 +87,5 @@ class Unitarum
     {
         $this->reader = $reader;
         return $this;
-    }
-
-    /**
-     * @return \SplObjectStorage
-     */
-    public function getCollection(): \SplObjectStorage
-    {
-        if (!$this->collection instanceof \SplObjectStorage) {
-            $this->collection = new \SplObjectStorage();
-        }
-        return $this->collection;
     }
 }

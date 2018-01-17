@@ -3,6 +3,8 @@
 namespace UnitarumTest;
 
 use PHPUnit\Framework\TestCase;
+use Unitarum\Options;
+use Unitarum\OptionsInterface;
 use Unitarum\Reader;
 use Unitarum\ReaderInterface;
 
@@ -12,36 +14,33 @@ use Unitarum\ReaderInterface;
 class ReaderTest extends TestCase
 {
     /**
-     * @var ReaderInterface
-     */
-    private $reader;
-
-    public function setUp()
-    {
-        $fixturePath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data');
-        $this->reader = new Reader($fixturePath);
-    }
-    /**
      * @expectedException \Unitarum\Exception\NotExistFileException
      */
     public function testSetPathException()
     {
         $fixturePath = 'tmp';
-        new Reader($fixturePath);
+        $options = new Options([OptionsInterface::FIXTURE_FOLDER_OPTION => $fixturePath]);
+        new Reader($options);
     }
 
     public function testSetPath()
     {
         $fixturePath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data');
-        $reader = new Reader($fixturePath);
+        $options = new Options([OptionsInterface::FIXTURE_FOLDER_OPTION => $fixturePath]);
+        $reader = new Reader($options);
         $this->assertEquals($fixturePath, $reader->getPath());
     }
 
     public function testRead()
     {
-        $filePath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data/user.php');
+        $fixturePath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data');
+        $options = new Options([OptionsInterface::FIXTURE_FOLDER_OPTION => $fixturePath]);
+        $reader = new Reader($options);
+
         $fixtureName = 'user';
-        $file = $this->reader->read($fixtureName);
+        $file = $reader->read($fixtureName);
+
+        $filePath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data/user.php');
         $this->assertEquals((include $filePath), $file);
     }
 }

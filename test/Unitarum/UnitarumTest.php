@@ -21,7 +21,7 @@ class UnitarumTest extends TestCase
 
     public function setUp()
     {
-        $this->unitarum = new Unitarum(new Options());
+        $this->unitarum = new Unitarum(new Options([]));
     }
 
     /**
@@ -54,7 +54,7 @@ class UnitarumTest extends TestCase
     public function testSetReader()
     {
         $reader = $this->getMockBuilder(Reader::class)->disableOriginalConstructor()->getMock();
-        $unitarum = new Unitarum(new Options());
+        $unitarum = new Unitarum(new Options([]));
         $unitarum->setReader($reader);
         $this->assertInstanceOf(ReaderInterface::class, $reader);
     }
@@ -62,21 +62,15 @@ class UnitarumTest extends TestCase
     public function testMagicCallMethod()
     {
         $unitarum = new Unitarum([OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data')]);
-        $return = $unitarum->user();
+        $return = $unitarum->user(['name' => 'Super Test']);
         $this->assertInstanceOf(Unitarum::class, $return);
-    }
-
-    public function testGetCollection()
-    {
-        $collection = $this->unitarum->getCollection();
-        $this->assertInstanceOf(\SplObjectStorage::class, $collection);
     }
 
     public function supportOptionsTypesData()
     {
         return [
             [[]],
-            [new Options()],
+            [new Options([])],
         ];
     }
 

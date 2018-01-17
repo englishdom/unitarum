@@ -9,13 +9,12 @@ use Unitarum\Exception\NotExistFileException;
  */
 interface ReaderInterface
 {
-
     /**
      * FixtureReader constructor.
-     * @param string $fixturePath
+     * @param OptionsInterface $options
      * @throws NotExistFileException
      */
-    public function __construct(string $fixturePath);
+    public function __construct(OptionsInterface $options);
 
     /**
      * @param string $fixtureName

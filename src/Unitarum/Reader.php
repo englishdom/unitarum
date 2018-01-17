@@ -17,12 +17,12 @@ class Reader implements ReaderInterface
 
     /**
      * FixtureReader constructor.
-     * @param string $fixturePath
+     * @param OptionsInterface $options
      * @throws NotExistFileException
      */
-    public function __construct(string $fixturePath)
+    public function __construct(OptionsInterface $options)
     {
-        $this->setPath($fixturePath);
+        $this->setPath($options->getFixtureFolder());
     }
 
     public function getPath(): string
