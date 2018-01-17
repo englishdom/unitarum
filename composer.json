@@ -13,9 +13,6 @@
 	"squizlabs/php_codesniffer": "^2.8.1"
     },
     "autoload": {
-        "files": [
-            "library/Common/Config/env.php"
-        ],
         "psr-4": {
             "Unitarum\\": "src/Unitarum/"
         }
