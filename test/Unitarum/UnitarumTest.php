@@ -10,6 +10,7 @@ use Unitarum\OptionsInterface;
 use Unitarum\Reader;
 use Unitarum\ReaderInterface;
 use Unitarum\Unitarum;
+use UnitarumExample\Entity\Role;
 use UnitarumExample\Entity\User;
 
 /**
@@ -95,21 +96,29 @@ class UnitarumTest extends TestCase
             OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
         ]);
 
-//        $unitarum->getDataBase()->startTransaction();
-
-        $unitarum->user(['name' => 'Bob'])->role(['role' => 'viewer', 'user_id' => '{{user.id}}']);
+        $unitarum->getDataBase()->startTransaction();
 
         $userEntity = new User();
-        $userEntity->setName(33);
+        $userEntity->setId(10);
+        $userEntity->setName('Chain Yung');
 
         $roleEntity = new Role();
+        $roleEntity->setId(11);
+        $roleEntity->setRole('viewer');
         $roleEntity->setUserId($userEntity->getId());
-        $unitarum->user()->role(['role' => 'viewer', 'user_id' => '{{user.id}}']);
 
+        $unitarum->user($userEntity)->role($roleEntity);
 
-        /* @TODO Check data in table */
+        $methodSelect = self::getProtectedMethod(DataBase::class, 'selectById');
+        $result = $methodSelect->invokeArgs($unitarum->getDataBase(), [10, 'id', DataBaseTest::TEST_TABLE_USERS]);
+        $this->assertTrue($result['name'] == 'Chain Yung');
 
-//        $unitarum->getDataBase()->rollbackTransaction();
+        $methodSelect = self::getProtectedMethod(DataBase::class, 'selectById');
+        $result = $methodSelect->invokeArgs($unitarum->getDataBase(), [11, 'id', DataBaseTest::TEST_TABLE_ROLES]);
+        $this->assertTrue($result['role'] == 'viewer');
+        $this->assertTrue($result['user_id'] == 10);
+
+        $unitarum->getDataBase()->rollbackTransaction();
     }
 
     // --------------- Data Providers

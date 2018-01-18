@@ -27,22 +27,6 @@ class DataBaseTest extends TestCase
         $this->dataBase = new DataBase($options);
     }
 
-    public function testGetCollection()
-    {
-        $collection = $this->dataBase->getCollection();
-        $this->assertTrue(is_array($collection));
-    }
-
-    public function testGetCollectionRecord()
-    {
-        $collectionData = ['field' => 1];
-        $collection = $this->getProtectedProperty(DataBase::class, 'collection');
-        $collection->setValue($this->dataBase, ['test' => $collectionData]);
-
-        $return = $this->dataBase->getCollection('test');
-        $this->assertEquals($collectionData, $return);
-    }
-
     public function testMergeArrays() {
         $firstEntity = new User();
         $firstEntity->setName('Test');
@@ -82,38 +66,34 @@ class DataBaseTest extends TestCase
         $this->dataBase->rollbackTransaction();
     }
 
+    /**
+     * @expectedException \Unitarum\Exception\DataBaseException
+     */
     public function testInsertException()
     {
-//        $insertData = [];
-//        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
-//        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
+        $this->dataBase->startTransaction();
+        $insertData = ['email' => 'test@test.no'];
+        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
+        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
+
+        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
+        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
     }
 
-    public function testGetPdo()
-    {
-        $pdo = $this->dataBase->getPDO();
-        $this->assertInstanceOf(\PDO::class, $pdo);
-    }
-    
     public function testGetTableStructure()
     {
-        $tableName = self::TEST_TABLE_USERS;
-        $pdo = $this->dataBase->getPDO();
+        $originalColumns = [
+            AUTO_INCREMENT => 'id',
+            'name',
+            'email'
+        ];
+        $method = self::getProtectedMethod(DataBase::class, 'getTableStructure');
+        $returnColumns = $method->invokeArgs($this->dataBase, [self::TEST_TABLE_USERS]);
+        $this->assertEquals($originalColumns, $returnColumns);
+    }
 
-        $sql = sprintf(
-            'SELECT sql FROM sqlite_master WHERE tbl_name = "%s"',
-            $tableName
-        );
-
-        $statement = $pdo->prepare($sql);
-        $statement->execute();
-        $result = $statement->fetch(\PDO::FETCH_ASSOC);
-
-//        preg_match('~\((.+)\)~si', $result['sql'], $matches);
-//        $array = preg_split('~\,~', $matches[1]);
-//        var_dump($array); die();
-
-        preg_match('~\([[:space:]]*([a-z]+).*autoincrement~siu', $result['sql'], $matches);
-        var_dump($matches); die();
+    public function tearDown()
+    {
+        $this->dataBase->rollbackTransaction();
     }
 }

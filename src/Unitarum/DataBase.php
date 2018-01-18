@@ -2,20 +2,12 @@
 
 namespace Unitarum;
 
-use Unitarum\Exception\ParamNotExistException;
-use Zend\Hydrator\ClassMethods;
+use Unitarum\Exception\DataBaseException;
 
 define('AUTO_INCREMENT', 'AUTO_INCREMENT');
-define('OPEN_BRACE', '{{');
-define('CLOSE_BRACE', '}}');
 
 class DataBase implements DataBaseInterface
 {
-    /**
-     * @var array
-     */
-    protected $collection = [];
-
     /**
      * @var \PDO
      */
@@ -39,7 +31,9 @@ class DataBase implements DataBaseInterface
 
     public function rollbackTransaction()
     {
-        $this->pdo->rollBack();
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
     }
 
     public function execute($defaultData, $incomeEntity, $tableAlias)
@@ -50,34 +44,39 @@ class DataBase implements DataBaseInterface
 
         $hydrator = new SimpleHydrator();
         $insertingData = $hydrator->extract($insertingEntity);
-        /* Get identifier from previous data */
-        $insertingData = $this->executeExpression($insertingData);
 
-        $lastInsertId = $this->insertData($insertingData, $tableName);
-        $insertedData = $this->selectById($lastInsertId, $aiField, $tableName);
-        $this->appendToCollection($tableAlias, $insertedData);
-        return $insertedData;
+        /* Get real columns name from table structure */
+        $columns = $this->getTableStructure($tableName);
+
+        /* Remove unused columns from data */
+        $clearData = array_intersect_key($insertingData, array_flip($columns));
+
+        $lastInsertId = $this->insertData($clearData, $tableName);
+        $insertedData = $this->selectById($lastInsertId, $columns[AUTO_INCREMENT], $tableName);
+
+        $hydrator->hydrate($insertedData, $incomeEntity);
+        return $incomeEntity;
     }
 
-    protected function insertData($insertingEntity, $tableName)
+    protected function insertData($insertingData, $tableName)
     {
         /* Prepare sql */
-        $columnNames = array_keys($insertingEntity);
+        $columnNames = array_keys($insertingData);
         $sql = sprintf(
             'INSERT INTO %s (%s) VALUES (%s)',
             $tableName,
             implode(',', $columnNames),
-            implode(',', array_fill(0, count($insertingEntity), '?'))
+            implode(',', array_fill(0, count($insertingData), '?'))
         );
         $statement = $this->pdo->prepare($sql);
 
         // Insert data to table
-        if (!$statement->execute(array_values($insertingEntity))) {
-            throw new \SQLiteException(
+        if (!$statement->execute(array_values($insertingData))) {
+            throw new DataBaseException(
                 sprintf(
                     'Can not insert data to the table! Query: %s. Data: %s',
                     $sql,
-                    implode(',', $insertingEntity)
+                    implode(',', $insertingData)
                 )
             );
         }
@@ -108,56 +107,30 @@ class DataBase implements DataBaseInterface
         return $hydrator->hydrate($mergedArray, new $entityName());
     }
 
-    /**
-     * @param null $tableName
-     * @return array
-     */
-    public function getCollection($tableName = null): array
+    protected function getTableStructure($tableName): array
     {
-        if ($tableName !== null && isset($this->collection[$tableName])) {
-            return $this->collection[$tableName];
-        }
-        return $this->collection;
-    }
+        $sql = sprintf(
+            'SELECT sql FROM sqlite_master WHERE tbl_name = "%s"',
+            $tableName
+        );
 
-    protected function appendToCollection($tableName, array $data)
-    {
-        $this->collection[$tableName][] = $data;
-        return $this->getCollection();
-    }
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute();
+        $result = $statement->fetch(\PDO::FETCH_ASSOC);
 
-    protected function executeExpression($insertingData) : array
-    {
-        foreach ($insertingData as &$value) {
-            if (substr($value, 0, 2) == OPEN_BRACE && substr($value, -2) == CLOSE_BRACE) {
-                $expression = substr($value, 2, -2);
-                list($tableAlias, $fieldName) = explode('.', $expression);
-
-                $fields = $this->getCollection($tableAlias);
-                /* @TODO Get only first inserted DATA. Need create duplicate row for inserting data */
-                if (!isset($fields[0][$fieldName])) {
-                    throw new ParamNotExistException(
-                        sprintf(
-                            'Collection does not have field `%s` for table alias `%s`',
-                            $fieldName,
-                            $tableAlias
-                        )
-                    );
-                }
-                $value = $fields[0][$fieldName];
+        $columns = [];
+        preg_match('~\((.+)\)~si', $result['sql'], $matches);
+        $array = explode(',', $matches[1]);
+        foreach ($array as $value) {
+            $clearString = trim($value);
+            $parts = explode(' ', $clearString);
+            if (stristr($clearString, 'autoincrement')) {
+                $columns[AUTO_INCREMENT] = $parts[0];
+            } else {
+                $columns[] = $parts[0];
             }
         }
 
-        return $insertingData;
-    }
-
-    public function getPDO(): \PDO
-    {
-        return $this->pdo;
-    }
-
-    protected function getTableStructure($tableName)
-    {
-
+        return $columns;
     }
 }
