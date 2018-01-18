@@ -63,11 +63,11 @@ class Unitarum
     public function __call($fixtureName, $arguments)
     {
         /* Read default data from file */
-        $data = $this->getReader()->read($fixtureName);
+        $defaultData = $this->getReader()->read($fixtureName);
         /* The data change in dataSet */
-        $incomeData = isset($arguments[0]) ? $arguments[0] : [];
+        $incomeEntity = isset($arguments[0]) ? $arguments[0] : null;
         /* Insert data to database */
-        $this->getDataBase()->execute($data, $incomeData, $fixtureName);
+        $this->getDataBase()->execute($defaultData, $incomeEntity, $fixtureName);
 
         return $this;
     }

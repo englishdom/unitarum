@@ -7,6 +7,7 @@ use Unitarum\DataBase;
 use Unitarum\DataBaseInterface;
 use Unitarum\Options;
 use Unitarum\OptionsInterface;
+use UnitarumExample\Entity\User;
 
 class DataBaseTest extends TestCase
 {
@@ -26,55 +27,21 @@ class DataBaseTest extends TestCase
         $this->dataBase = new DataBase($options);
     }
 
-    public function testGetCollection()
-    {
-        $collection = $this->dataBase->getCollection();
-        $this->assertTrue(is_array($collection));
-    }
-
-    public function testGetCollectionRecord()
-    {
-        $collectionData = ['field' => 1];
-        $collection = $this->getProtectedProperty(DataBase::class, 'collection');
-        $collection->setValue($this->dataBase, ['test' => $collectionData]);
-
-        $return = $this->dataBase->getCollection('test');
-        $this->assertEquals($collectionData, $return);
-    }
-
     public function testMergeArrays() {
-        $firstArray = ['name' => 'Test', 'email' => 'test@test.no'];
-        $secondArray = ['name' => 'SuperTest'];
-        $changedArray = ['name' => 'SuperTest', 'email' =>'test@test.no'];
+        $firstEntity = new User();
+        $firstEntity->setName('Test');
+        $firstEntity->setEmail('test@test.no');
+
+        $secondEntity = new User();
+        $secondEntity->setName('SuperTest');
+
+        $changedEntity = new User();
+        $changedEntity->setName('SuperTest');
+        $changedEntity->setEmail('test@test.no');
 
         $method = self::getProtectedMethod(DataBase::class, 'mergeArrays');
-        $returnArray = $method->invokeArgs($this->dataBase, [$firstArray, $secondArray]);
-        $this->assertEquals($changedArray, $returnArray);
-    }
-
-    public function testGetAutoincrementField()
-    {
-        $aiField = 'id';
-        $fields = [
-            'id' => AUTO_INCREMENT,
-            'email' => 'test@test.no'
-        ];
-        $method = self::getProtectedMethod(DataBase::class, 'getAutoincrementField');
-        $returnField = $method->invokeArgs($this->dataBase, [$fields, 'test']);
-        $this->assertEquals($aiField, $returnField);
-    }
-
-    /**
-     * @expectedException \Unitarum\Exception\ParamNotExistException
-     */
-    public function testGetAutoincrementFieldException()
-    {
-        $fields = [
-            'name' => 'Test',
-            'email' => 'test@test.no'
-        ];
-        $method = self::getProtectedMethod(DataBase::class, 'getAutoincrementField');
-        $method->invokeArgs($this->dataBase, [$fields, 'test']);
+        $returnEntity = $method->invokeArgs($this->dataBase, [$firstEntity, $secondEntity]);
+        $this->assertEquals($changedEntity, $returnEntity);
     }
 
     public function testInsertDataFunctional()
@@ -99,10 +66,34 @@ class DataBaseTest extends TestCase
         $this->dataBase->rollbackTransaction();
     }
 
+    /**
+     * @expectedException \Unitarum\Exception\DataBaseException
+     */
     public function testInsertException()
     {
-//        $insertData = [];
-//        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
-//        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
+        $this->dataBase->startTransaction();
+        $insertData = ['email' => 'test@test.no'];
+        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
+        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
+
+        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
+        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
+    }
+
+    public function testGetTableStructure()
+    {
+        $originalColumns = [
+            AUTO_INCREMENT => 'id',
+            'name',
+            'email'
+        ];
+        $method = self::getProtectedMethod(DataBase::class, 'getTableStructure');
+        $returnColumns = $method->invokeArgs($this->dataBase, [self::TEST_TABLE_USERS]);
+        $this->assertEquals($originalColumns, $returnColumns);
+    }
+
+    public function tearDown()
+    {
+        $this->dataBase->rollbackTransaction();
     }
 }

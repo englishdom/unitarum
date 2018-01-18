@@ -8,13 +8,14 @@
         "sort-packages": true
     },
     "require": {
-        "php": "^5.6 || ^7.0",
+        "php": "^7.1",
         "phpunit/phpunit": "^6.0.8",
         "squizlabs/php_codesniffer": "^2.8.1"
     },
     "autoload": {
         "psr-4": {
-            "Unitarum\\": "src/Unitarum/"
+            "Unitarum\\": "src/Unitarum/",
+            "UnitarumExample\\": "src/Example/"
         }
     },
     "autoload-dev": {

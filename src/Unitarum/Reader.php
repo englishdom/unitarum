@@ -46,7 +46,7 @@ class Reader implements ReaderInterface
      * @param string $fixtureName
      * @return array
      */
-    public function read(string $fixtureName): array
+    public function read(string $fixtureName)
     {
         $filename = realpath($this->getPath() . DIRECTORY_SEPARATOR . $fixtureName . '.php');
         return (include $filename);

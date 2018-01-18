@@ -2,19 +2,12 @@
 
 namespace Unitarum;
 
-use Unitarum\Exception\ParamNotExistException;
+use Unitarum\Exception\DataBaseException;
 
 define('AUTO_INCREMENT', 'AUTO_INCREMENT');
-define('OPEN_BRACE', '{{');
-define('CLOSE_BRACE', '}}');
 
 class DataBase implements DataBaseInterface
 {
-    /**
-     * @var array
-     */
-    protected $collection = [];
-
     /**
      * @var \PDO
      */
@@ -38,29 +31,34 @@ class DataBase implements DataBaseInterface
 
     public function rollbackTransaction()
     {
-        $this->pdo->rollBack();
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
     }
 
-    public function execute($defaultData, $changeData, $tableAlias)
+    public function execute($defaultData, $incomeEntity, $tableAlias)
     {
-        $dataArray = reset($defaultData);
+        $defaultEntity = reset($defaultData);
         $tableName = key($defaultData);
-        $insertingData = $this->mergeArrays($dataArray, $changeData);
+        $insertingEntity = $this->mergeArrays($defaultEntity, $incomeEntity);
 
-        /* Get autoincrement field and remove from inserting data */
-        $aiField = $this->getAutoincrementField($insertingData, $tableName);
-        unset($insertingData[$aiField]);
+        $hydrator = new SimpleHydrator();
+        $insertingData = $hydrator->extract($insertingEntity);
 
-        /* Get identifier from previous data */
-        $insertingData = $this->executeExpression($insertingData);
+        /* Get real columns name from table structure */
+        $columns = $this->getTableStructure($tableName);
 
-        $lastInsertId = $this->insertData($insertingData, $tableName);
-        $insertedData = $this->selectById($lastInsertId, $aiField, $tableName);
-        $this->appendToCollection($tableAlias, $insertedData);
-        return $insertedData;
+        /* Remove unused columns from data */
+        $clearData = array_intersect_key($insertingData, array_flip($columns));
+
+        $lastInsertId = $this->insertData($clearData, $tableName);
+        $insertedData = $this->selectById($lastInsertId, $columns[AUTO_INCREMENT], $tableName);
+
+        $hydrator->hydrate($insertedData, $incomeEntity);
+        return $incomeEntity;
     }
 
-    protected function insertData(array $insertingData, $tableName)
+    protected function insertData($insertingData, $tableName)
     {
         /* Prepare sql */
         $columnNames = array_keys($insertingData);
@@ -74,7 +72,7 @@ class DataBase implements DataBaseInterface
 
         // Insert data to table
         if (!$statement->execute(array_values($insertingData))) {
-            throw new \SQLiteException(
+            throw new DataBaseException(
                 sprintf(
                     'Can not insert data to the table! Query: %s. Data: %s',
                     $sql,
@@ -98,62 +96,41 @@ class DataBase implements DataBaseInterface
         return $statement->fetch(\PDO::FETCH_ASSOC);
     }
 
-    protected function getAutoincrementField(array $fields, $tableName)
+    protected function mergeArrays($originalEntity, $changedEntity)
     {
-        foreach ($fields as $fieldName => $value) {
-            if ($value == AUTO_INCREMENT) {
-                return $fieldName;
-            }
-        }
-        throw new ParamNotExistException(
-            'The `'.AUTO_INCREMENT.'` field does not exist in a table `'.$tableName.'``'
+        $hydrator = new SimpleHydrator();
+        $entityName = get_class($originalEntity);
+
+        $firstArray = $hydrator->extract($originalEntity);
+        $secondArray = array_filter($hydrator->extract($changedEntity));
+        $mergedArray = array_merge($firstArray, $secondArray);
+        return $hydrator->hydrate($mergedArray, new $entityName());
+    }
+
+    protected function getTableStructure($tableName): array
+    {
+        $sql = sprintf(
+            'SELECT sql FROM sqlite_master WHERE tbl_name = "%s"',
+            $tableName
         );
-    }
 
-    protected function mergeArrays(array $originalData, array $changedData)
-    {
-        return array_merge($originalData, $changedData);
-    }
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute();
+        $result = $statement->fetch(\PDO::FETCH_ASSOC);
 
-    /**
-     * @param null $tableName
-     * @return array
-     */
-    public function getCollection($tableName = null): array
-    {
-        if ($tableName !== null && isset($this->collection[$tableName])) {
-            return $this->collection[$tableName];
-        }
-        return $this->collection;
-    }
-
-    protected function appendToCollection($tableName, array $data)
-    {
-        $this->collection[$tableName][] = $data;
-        return $this->getCollection();
-    }
-
-    protected function executeExpression($insertingData): array
-    {
-        foreach ($insertingData as &$value) {
-            if (substr($value, 0, 2) == OPEN_BRACE && substr($value, -2) == CLOSE_BRACE) {
-                $expression = substr($value, 2, -2);
-                list($tableAlias, $fieldName) = explode('.', $expression);
-
-                $fields = $this->getCollection($tableAlias);
-                /* @TODO Get only first inserted DATA. Need create duplicate row for inserting data */
-                if (!isset($fields[0][$fieldName])) {
-                    throw new ParamNotExistException(
-                        sprintf(
-                            'Collection does not have field `%s` for table alias `%s`',
-                            $fieldName,
-                            $tableAlias
-                        )
-                    );
-                }
-                $value = $fields[0][$fieldName];
+        $columns = [];
+        preg_match('~\((.+)\)~si', $result['sql'], $matches);
+        $array = explode(',', $matches[1]);
+        foreach ($array as $value) {
+            $clearString = trim($value);
+            $parts = explode(' ', $clearString);
+            if (stristr($clearString, 'autoincrement')) {
+                $columns[AUTO_INCREMENT] = $parts[0];
+            } else {
+                $columns[] = $parts[0];
             }
         }
-        return $insertingData;
+
+        return $columns;
     }
 }

@@ -8,6 +8,8 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS test_users
   email VARCHAR(200) NOT NULL
 );
 
+CREATE UNIQUE INDEX test_users_email_uindex ON test_users (email);
+
 CREATE TABLE IF NOT EXISTS test_roles
 (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
