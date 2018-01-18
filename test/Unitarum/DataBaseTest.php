@@ -7,6 +7,7 @@ use Unitarum\DataBase;
 use Unitarum\DataBaseInterface;
 use Unitarum\Options;
 use Unitarum\OptionsInterface;
+use UnitarumExample\Entity\User;
 
 class DataBaseTest extends TestCase
 {
@@ -43,38 +44,20 @@ class DataBaseTest extends TestCase
     }
 
     public function testMergeArrays() {
-        $firstArray = ['name' => 'Test', 'email' => 'test@test.no'];
-        $secondArray = ['name' => 'SuperTest'];
-        $changedArray = ['name' => 'SuperTest', 'email' =>'test@test.no'];
+        $firstEntity = new User();
+        $firstEntity->setName('Test');
+        $firstEntity->setEmail('test@test.no');
+
+        $secondEntity = new User();
+        $secondEntity->setName('SuperTest');
+
+        $changedEntity = new User();
+        $changedEntity->setName('SuperTest');
+        $changedEntity->setEmail('test@test.no');
 
         $method = self::getProtectedMethod(DataBase::class, 'mergeArrays');
-        $returnArray = $method->invokeArgs($this->dataBase, [$firstArray, $secondArray]);
-        $this->assertEquals($changedArray, $returnArray);
-    }
-
-    public function testGetAutoincrementField()
-    {
-        $aiField = 'id';
-        $fields = [
-            'id' => AUTO_INCREMENT,
-            'email' => 'test@test.no'
-        ];
-        $method = self::getProtectedMethod(DataBase::class, 'getAutoincrementField');
-        $returnField = $method->invokeArgs($this->dataBase, [$fields, 'test']);
-        $this->assertEquals($aiField, $returnField);
-    }
-
-    /**
-     * @expectedException \Unitarum\Exception\ParamNotExistException
-     */
-    public function testGetAutoincrementFieldException()
-    {
-        $fields = [
-            'name' => 'Test',
-            'email' => 'test@test.no'
-        ];
-        $method = self::getProtectedMethod(DataBase::class, 'getAutoincrementField');
-        $method->invokeArgs($this->dataBase, [$fields, 'test']);
+        $returnEntity = $method->invokeArgs($this->dataBase, [$firstEntity, $secondEntity]);
+        $this->assertEquals($changedEntity, $returnEntity);
     }
 
     public function testInsertDataFunctional()
@@ -104,5 +87,33 @@ class DataBaseTest extends TestCase
 //        $insertData = [];
 //        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
 //        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
+    }
+
+    public function testGetPdo()
+    {
+        $pdo = $this->dataBase->getPDO();
+        $this->assertInstanceOf(\PDO::class, $pdo);
+    }
+    
+    public function testGetTableStructure()
+    {
+        $tableName = self::TEST_TABLE_USERS;
+        $pdo = $this->dataBase->getPDO();
+
+        $sql = sprintf(
+            'SELECT sql FROM sqlite_master WHERE tbl_name = "%s"',
+            $tableName
+        );
+
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        $result = $statement->fetch(\PDO::FETCH_ASSOC);
+
+//        preg_match('~\((.+)\)~si', $result['sql'], $matches);
+//        $array = preg_split('~\,~', $matches[1]);
+//        var_dump($array); die();
+
+        preg_match('~\([[:space:]]*([a-z]+).*autoincrement~siu', $result['sql'], $matches);
+        var_dump($matches); die();
     }
 }

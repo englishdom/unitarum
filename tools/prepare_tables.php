@@ -3,7 +3,7 @@
 $pdo = new \PDO('sqlite:data/sqlite.db');
 $pdo->exec('CREATE TABLE IF NOT EXISTS test_users
 (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id integer primary key autoincrement,
   name VARCHAR(200) DEFAULT "",
   email VARCHAR(200) NOT NULL
 );

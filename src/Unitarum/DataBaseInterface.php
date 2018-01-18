@@ -17,9 +17,11 @@ interface DataBaseInterface
      */
     public function getCollection($tableName = null): array;
 
-    public function execute($defaultData, $changeData, $tableAlias);
+    public function execute($defaultEntity, $incomeEntity, $tableAlias);
 
     public function startTransaction();
 
     public function rollbackTransaction();
+
+    public function getPDO(): \PDO;
 }

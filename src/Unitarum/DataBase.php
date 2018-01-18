@@ -3,6 +3,7 @@
 namespace Unitarum;
 
 use Unitarum\Exception\ParamNotExistException;
+use Zend\Hydrator\ClassMethods;
 
 define('AUTO_INCREMENT', 'AUTO_INCREMENT');
 define('OPEN_BRACE', '{{');
@@ -41,16 +42,14 @@ class DataBase implements DataBaseInterface
         $this->pdo->rollBack();
     }
 
-    public function execute($defaultData, $changeData, $tableAlias)
+    public function execute($defaultData, $incomeEntity, $tableAlias)
     {
-        $dataArray = reset($defaultData);
+        $defaultEntity = reset($defaultData);
         $tableName = key($defaultData);
-        $insertingData = $this->mergeArrays($dataArray, $changeData);
+        $insertingEntity = $this->mergeArrays($defaultEntity, $incomeEntity);
 
-        /* Get autoincrement field and remove from inserting data */
-        $aiField = $this->getAutoincrementField($insertingData, $tableName);
-        unset($insertingData[$aiField]);
-
+        $hydrator = new SimpleHydrator();
+        $insertingData = $hydrator->extract($insertingEntity);
         /* Get identifier from previous data */
         $insertingData = $this->executeExpression($insertingData);
 
@@ -60,25 +59,25 @@ class DataBase implements DataBaseInterface
         return $insertedData;
     }
 
-    protected function insertData(array $insertingData, $tableName)
+    protected function insertData($insertingEntity, $tableName)
     {
         /* Prepare sql */
-        $columnNames = array_keys($insertingData);
+        $columnNames = array_keys($insertingEntity);
         $sql = sprintf(
             'INSERT INTO %s (%s) VALUES (%s)',
             $tableName,
             implode(',', $columnNames),
-            implode(',', array_fill(0, count($insertingData), '?'))
+            implode(',', array_fill(0, count($insertingEntity), '?'))
         );
         $statement = $this->pdo->prepare($sql);
 
         // Insert data to table
-        if (!$statement->execute(array_values($insertingData))) {
+        if (!$statement->execute(array_values($insertingEntity))) {
             throw new \SQLiteException(
                 sprintf(
                     'Can not insert data to the table! Query: %s. Data: %s',
                     $sql,
-                    implode(',', $insertingData)
+                    implode(',', $insertingEntity)
                 )
             );
         }
@@ -98,21 +97,15 @@ class DataBase implements DataBaseInterface
         return $statement->fetch(\PDO::FETCH_ASSOC);
     }
 
-    protected function getAutoincrementField(array $fields, $tableName)
+    protected function mergeArrays($originalEntity, $changedEntity)
     {
-        foreach ($fields as $fieldName => $value) {
-            if ($value == AUTO_INCREMENT) {
-                return $fieldName;
-            }
-        }
-        throw new ParamNotExistException(
-            'The `'.AUTO_INCREMENT.'` field does not exist in a table `'.$tableName.'``'
-        );
-    }
+        $hydrator = new SimpleHydrator();
+        $entityName = get_class($originalEntity);
 
-    protected function mergeArrays(array $originalData, array $changedData)
-    {
-        return array_merge($originalData, $changedData);
+        $firstArray = $hydrator->extract($originalEntity);
+        $secondArray = array_filter($hydrator->extract($changedEntity));
+        $mergedArray = array_merge($firstArray, $secondArray);
+        return $hydrator->hydrate($mergedArray, new $entityName());
     }
 
     /**
@@ -133,7 +126,7 @@ class DataBase implements DataBaseInterface
         return $this->getCollection();
     }
 
-    protected function executeExpression($insertingData): array
+    protected function executeExpression($insertingData) : array
     {
         foreach ($insertingData as &$value) {
             if (substr($value, 0, 2) == OPEN_BRACE && substr($value, -2) == CLOSE_BRACE) {
@@ -154,6 +147,17 @@ class DataBase implements DataBaseInterface
                 $value = $fields[0][$fieldName];
             }
         }
+
         return $insertingData;
+    }
+
+    public function getPDO(): \PDO
+    {
+        return $this->pdo;
+    }
+
+    protected function getTableStructure($tableName)
+    {
+
     }
 }

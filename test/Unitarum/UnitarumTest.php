@@ -10,6 +10,7 @@ use Unitarum\OptionsInterface;
 use Unitarum\Reader;
 use Unitarum\ReaderInterface;
 use Unitarum\Unitarum;
+use UnitarumExample\Entity\User;
 
 /**
  * @package UnitarumTest
@@ -78,7 +79,9 @@ class UnitarumTest extends TestCase
         ]);
         $unitarum->getDataBase()->startTransaction();
 
-        $return = $unitarum->user(['name' => 'Super Test']);
+        $userEntity = new User();
+        $userEntity->setName('Super Test');
+        $return = $unitarum->user($userEntity);
         $this->assertInstanceOf(Unitarum::class, $return);
 
         $unitarum->getDataBase()->rollbackTransaction();
@@ -92,13 +95,21 @@ class UnitarumTest extends TestCase
             OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
         ]);
 
-        $unitarum->getDataBase()->startTransaction();
+//        $unitarum->getDataBase()->startTransaction();
 
         $unitarum->user(['name' => 'Bob'])->role(['role' => 'viewer', 'user_id' => '{{user.id}}']);
 
+        $userEntity = new User();
+        $userEntity->setName(33);
+
+        $roleEntity = new Role();
+        $roleEntity->setUserId($userEntity->getId());
+        $unitarum->user()->role(['role' => 'viewer', 'user_id' => '{{user.id}}']);
+
+
         /* @TODO Check data in table */
 
-        $unitarum->getDataBase()->rollbackTransaction();
+//        $unitarum->getDataBase()->rollbackTransaction();
     }
 
     // --------------- Data Providers
