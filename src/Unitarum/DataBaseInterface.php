@@ -12,7 +12,13 @@ interface DataBaseInterface
     public function __construct(OptionsInterface $options);
 
     /**
-     * @return \ArrayObject
+     * @return array
      */
-    public function getCollection(): \ArrayObject;
+    public function getCollection(): array;
+
+    public function execute($defaultData, $changeData);
+
+    public function startTransaction();
+
+    public function rollbackTransaction();
 }

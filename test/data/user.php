@@ -2,7 +2,7 @@
 
 return [
     'users' => [
-        'user_id' => 1,
+        'user_id' => AUTO_INCREMENT,
         'name' => 'Test',
         'email' => 'test@test.no',
     ]

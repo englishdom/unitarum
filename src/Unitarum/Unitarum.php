@@ -20,6 +20,11 @@ class Unitarum
     protected $reader;
 
     /**
+     * @var DataBaseInterface
+     */
+    protected $dataBase;
+
+    /**
      * Unitarum constructor.
      * @param OptionsInterface|array $options
      */
@@ -60,11 +65,10 @@ class Unitarum
         /* Read default data from file */
         $data = $this->getReader()->read($fixtureName);
         /* The data change in dataSet */
-//        $incomeData = isset($arguments[0]) ? $arguments[0] : [];
-//        $originalData = array_values($data)[0];
-//        $changedData = $this->mergeArrays($originalData, $incomeData);
-//        var_dump($changedData); die();
-        /* The data append */
+        $incomeData = isset($arguments[0]) ? $arguments[0] : [];
+        /* Insert data to database */
+        $this->getDataBase()->execute($data, $incomeData);
+
         return $this;
     }
 
@@ -86,6 +90,27 @@ class Unitarum
     public function setReader(ReaderInterface $reader): self
     {
         $this->reader = $reader;
+        return $this;
+    }
+
+    /**
+     * @return DataBaseInterface
+     */
+    public function getDataBase(): DataBaseInterface
+    {
+        if (!$this->dataBase instanceof DataBaseInterface) {
+            $this->dataBase = new DataBase($this->options);
+        }
+        return $this->dataBase;
+    }
+
+    /**
+     * @param DataBaseInterface $dataBase
+     * @return Unitarum
+     */
+    public function setDataBase(DataBaseInterface $dataBase): self
+    {
+        $this->dataBase = $dataBase;
         return $this;
     }
 }

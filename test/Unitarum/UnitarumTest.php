@@ -3,6 +3,8 @@
 namespace UnitarumTest;
 
 use PHPUnit\Framework\TestCase;
+use Unitarum\DataBase;
+use Unitarum\DataBaseInterface;
 use Unitarum\Options;
 use Unitarum\OptionsInterface;
 use Unitarum\Reader;
@@ -15,24 +17,13 @@ use Unitarum\Unitarum;
 class UnitarumTest extends TestCase
 {
     /**
-     * @var Unitarum
-     */
-    private $unitarum;
-
-    public function setUp()
-    {
-        $this->unitarum = new Unitarum(new Options([]));
-    }
-
-    /**
      * @dataProvider supportOptionsTypesData
      */
     public function testSupportOptions($options)
     {
-        $this->unitarum->setOptions($options);
-        $returnOptions = $this->unitarum->getOptions();
-
-        $this->assertInstanceOf(OptionsInterface::class, $returnOptions);
+        $unitarum = new Unitarum(new Options([]));
+        $unitarum->setOptions($options);
+        $this->assertInstanceOf(OptionsInterface::class, $unitarum->getOptions());
     }
 
     /**
@@ -41,9 +32,11 @@ class UnitarumTest extends TestCase
      */
     public function testExceptionOptionsType($options)
     {
-        $this->unitarum->setOptions($options);
+        $unitarum = new Unitarum(new Options([]));
+        $unitarum->setOptions($options);
     }
 
+    // --------------- Test Reader
     public function testGetDefaultReader()
     {
         $unitarum = new Unitarum([OptionsInterface::FIXTURE_FOLDER_OPTION => '/tmp']);
@@ -56,16 +49,36 @@ class UnitarumTest extends TestCase
         $reader = $this->getMockBuilder(Reader::class)->disableOriginalConstructor()->getMock();
         $unitarum = new Unitarum(new Options([]));
         $unitarum->setReader($reader);
-        $this->assertInstanceOf(ReaderInterface::class, $reader);
+        $this->assertInstanceOf(ReaderInterface::class, $unitarum->getReader());
     }
 
+    // -------------- Test DataBase
+    public function testSetDataBase()
+    {
+        $database = $this->getMockBuilder(DataBase::class)->disableOriginalConstructor()->getMock();
+        $unitarum = new Unitarum(new Options([]));
+        $unitarum->setDataBase($database);
+        $this->assertInstanceOf(DataBaseInterface::class, $unitarum->getDataBase());
+    }
+
+    public function testGetDefaultDataBase()
+    {
+        $unitarum = new Unitarum(new Options([OptionsInterface::DSN_OPTION => 'sqlite::memory:']));
+        $this->assertInstanceOf(DataBaseInterface::class, $unitarum->getDataBase());
+    }
+
+    // --------------- Test MagicMethod
     public function testMagicCallMethod()
     {
-        $unitarum = new Unitarum([OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data')]);
+        $unitarum = new Unitarum([
+            OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data'),
+            OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
+        ]);
         $return = $unitarum->user(['name' => 'Super Test']);
         $this->assertInstanceOf(Unitarum::class, $return);
     }
 
+    // --------------- Data Providers
     public function supportOptionsTypesData()
     {
         return [
