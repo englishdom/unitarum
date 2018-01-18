@@ -16,6 +16,8 @@ use Unitarum\Unitarum;
  */
 class UnitarumTest extends TestCase
 {
+    use GetProtectedTrait;
+
     /**
      * @dataProvider supportOptionsTypesData
      */
@@ -74,8 +76,29 @@ class UnitarumTest extends TestCase
             OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data'),
             OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
         ]);
+        $unitarum->getDataBase()->startTransaction();
+
         $return = $unitarum->user(['name' => 'Super Test']);
         $this->assertInstanceOf(Unitarum::class, $return);
+
+        $unitarum->getDataBase()->rollbackTransaction();
+    }
+
+    // --------------- Test chain of methods
+    public function testChainOfMethods()
+    {
+        $unitarum = new Unitarum([
+            OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data'),
+            OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
+        ]);
+
+        $unitarum->getDataBase()->startTransaction();
+
+        $unitarum->user(['name' => 'Bob'])->role(['role' => 'viewer', 'user_id' => '{{user.id}}']);
+
+        /* @TODO Check data in table */
+
+        $unitarum->getDataBase()->rollbackTransaction();
     }
 
     // --------------- Data Providers

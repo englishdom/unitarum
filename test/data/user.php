@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'users' => [
-        'user_id' => AUTO_INCREMENT,
+    \UnitarumTest\DataBaseTest::TEST_TABLE_USERS => [
+        'id' => AUTO_INCREMENT,
         'name' => 'Test',
         'email' => 'test@test.no',
     ]

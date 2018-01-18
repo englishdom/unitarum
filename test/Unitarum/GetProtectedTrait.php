@@ -10,4 +10,12 @@ trait GetProtectedTrait
         $method->setAccessible(true);
         return $method;
     }
+
+    protected static function getProtectedProperty($className, $propertyName)
+    {
+        $class = new \ReflectionClass($className);
+        $property = $class->getProperty($propertyName);
+        $property->setAccessible(true);
+        return $property;
+    }
 }

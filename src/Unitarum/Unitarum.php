@@ -67,7 +67,7 @@ class Unitarum
         /* The data change in dataSet */
         $incomeData = isset($arguments[0]) ? $arguments[0] : [];
         /* Insert data to database */
-        $this->getDataBase()->execute($data, $incomeData);
+        $this->getDataBase()->execute($data, $incomeData, $fixtureName);
 
         return $this;
     }

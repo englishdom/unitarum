@@ -5,6 +5,8 @@ namespace Unitarum;
 use Unitarum\Exception\ParamNotExistException;
 
 define('AUTO_INCREMENT', 'AUTO_INCREMENT');
+define('OPEN_BRACE', '{{');
+define('CLOSE_BRACE', '}}');
 
 class DataBase implements DataBaseInterface
 {
@@ -39,7 +41,7 @@ class DataBase implements DataBaseInterface
         $this->pdo->rollBack();
     }
 
-    public function execute($defaultData, $changeData)
+    public function execute($defaultData, $changeData, $tableAlias)
     {
         $dataArray = reset($defaultData);
         $tableName = key($defaultData);
@@ -49,13 +51,12 @@ class DataBase implements DataBaseInterface
         $aiField = $this->getAutoincrementField($insertingData, $tableName);
         unset($insertingData[$aiField]);
 
-        $lastInsertId = $this->insertData($insertingData, $tableName);
-        if (!$lastInsertId) {
-            return false;
-        }
+        /* Get identifier from previous data */
+        $insertingData = $this->executeExpression($insertingData);
 
+        $lastInsertId = $this->insertData($insertingData, $tableName);
         $insertedData = $this->selectById($lastInsertId, $aiField, $tableName);
-        $this->appendToCollection($tableName, $insertedData);
+        $this->appendToCollection($tableAlias, $insertedData);
         return $insertedData;
     }
 
@@ -73,7 +74,13 @@ class DataBase implements DataBaseInterface
 
         // Insert data to table
         if (!$statement->execute(array_values($insertingData))) {
-            return false;
+            throw new \SQLiteException(
+                sprintf(
+                    'Can not insert data to the table! Query: %s. Data: %s',
+                    $sql,
+                    implode(',', $insertingData)
+                )
+            );
         }
 
         return $this->pdo->lastInsertId();
@@ -109,16 +116,44 @@ class DataBase implements DataBaseInterface
     }
 
     /**
+     * @param null $tableName
      * @return array
      */
-    public function getCollection(): array
+    public function getCollection($tableName = null): array
     {
+        if ($tableName !== null && isset($this->collection[$tableName])) {
+            return $this->collection[$tableName];
+        }
         return $this->collection;
     }
 
     protected function appendToCollection($tableName, array $data)
     {
-        $this->getCollection()[$tableName][] = $data;
+        $this->collection[$tableName][] = $data;
         return $this->getCollection();
+    }
+
+    protected function executeExpression($insertingData): array
+    {
+        foreach ($insertingData as &$value) {
+            if (substr($value, 0, 2) == OPEN_BRACE && substr($value, -2) == CLOSE_BRACE) {
+                $expression = substr($value, 2, -2);
+                list($tableAlias, $fieldName) = explode('.', $expression);
+
+                $fields = $this->getCollection($tableAlias);
+                /* @TODO Get only first inserted DATA. Need create duplicate row for inserting data */
+                if (!isset($fields[0][$fieldName])) {
+                    throw new ParamNotExistException(
+                        sprintf(
+                            'Collection does not have field `%s` for table alias `%s`',
+                            $fieldName,
+                            $tableAlias
+                        )
+                    );
+                }
+                $value = $fields[0][$fieldName];
+            }
+        }
+        return $insertingData;
     }
 }

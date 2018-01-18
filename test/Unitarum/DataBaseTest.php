@@ -10,7 +10,8 @@ use Unitarum\OptionsInterface;
 
 class DataBaseTest extends TestCase
 {
-    const TEST_TABLE_NAME = 'test';
+    const TEST_TABLE_USERS = 'test_users';
+    const TEST_TABLE_ROLES = 'test_roles';
 
     use GetProtectedTrait;
 
@@ -29,6 +30,16 @@ class DataBaseTest extends TestCase
     {
         $collection = $this->dataBase->getCollection();
         $this->assertTrue(is_array($collection));
+    }
+
+    public function testGetCollectionRecord()
+    {
+        $collectionData = ['field' => 1];
+        $collection = $this->getProtectedProperty(DataBase::class, 'collection');
+        $collection->setValue($this->dataBase, ['test' => $collectionData]);
+
+        $return = $this->dataBase->getCollection('test');
+        $this->assertEquals($collectionData, $return);
     }
 
     public function testMergeArrays() {
@@ -77,14 +88,21 @@ class DataBaseTest extends TestCase
             'name' => 'TestName'
         ];
         $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
-        $lastInsertId = $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_NAME]);
+        $lastInsertId = $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
         $this->assertNotFalse($lastInsertId);
 
         $methodSelect = self::getProtectedMethod(DataBase::class, 'selectById');
-        $result = $methodSelect->invokeArgs($this->dataBase, [$lastInsertId, 'id', self::TEST_TABLE_NAME]);
+        $result = $methodSelect->invokeArgs($this->dataBase, [$lastInsertId, 'id', self::TEST_TABLE_USERS]);
         $this->assertEquals($insertData, $result);
 
         /* Rollback transaction */
         $this->dataBase->rollbackTransaction();
+    }
+
+    public function testInsertException()
+    {
+//        $insertData = [];
+//        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
+//        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
     }
 }
