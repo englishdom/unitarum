@@ -3,7 +3,7 @@
     "description": "The PHPUnit library is providing and flexible changing fixtures to database",
     "type": "library",
     "homepage": "https://github.com/englishdom/unitarum",
-    "license": "Apache 2.0",
+    "license": "Apache-2.0",
     "config": {
         "sort-packages": true
     },
