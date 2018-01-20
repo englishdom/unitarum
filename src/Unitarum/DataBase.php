@@ -98,6 +98,10 @@ class DataBase implements DataBaseInterface
 
     protected function mergeArrays($originalEntity, $changedEntity)
     {
+        if ($changedEntity === null) {
+            return $originalEntity;
+        }
+
         $hydrator = new SimpleHydrator();
         $entityName = get_class($originalEntity);
 

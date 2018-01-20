@@ -44,6 +44,19 @@ class DataBaseTest extends TestCase
         $this->assertEquals($changedEntity, $returnEntity);
     }
 
+    public function testMergeArrayWithoutSecond()
+    {
+        $firstEntity = new User();
+        $firstEntity->setName('Test');
+        $firstEntity->setEmail('test@test.no');
+
+        $secondEntity = null;
+
+        $method = self::getProtectedMethod(DataBase::class, 'mergeArrays');
+        $returnEntity = $method->invokeArgs($this->dataBase, [$firstEntity, $secondEntity]);
+        $this->assertEquals($firstEntity, $returnEntity);
+    }
+
     public function testInsertDataFunctional()
     {
         /* Start transaction */
