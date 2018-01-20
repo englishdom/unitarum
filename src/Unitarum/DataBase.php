@@ -71,6 +71,16 @@ class DataBase implements DataBaseInterface
         $statement = $this->pdo->prepare($sql);
 
         // Insert data to table
+        if (!$statement instanceof \PDOStatement) {
+            throw new DataBaseException(
+                sprintf(
+                    'Can not prepare statement! Query: %s. Data: %s',
+                    $sql,
+                    implode(',', $insertingData)
+                )
+            );
+        }
+
         if (!$statement->execute(array_values($insertingData))) {
             throw new DataBaseException(
                 sprintf(
@@ -98,6 +108,10 @@ class DataBase implements DataBaseInterface
 
     protected function mergeArrays($originalEntity, $changedEntity)
     {
+        if ($changedEntity === null) {
+            return $originalEntity;
+        }
+
         $hydrator = new SimpleHydrator();
         $entityName = get_class($originalEntity);
 

@@ -17,7 +17,7 @@ class SimpleHydrator
 
         $reflection = new \ReflectionClass($entity);
         foreach ($reflection->getMethods() as $method) {
-            if (substr($method->getName(), 0, 3) == self::METHOD_GET_PREFIX) {
+            if (substr($method->getName(), 0, 3) == self::METHOD_GET_PREFIX && strlen($method->getName()) > 3) {
                 $array[$this->convertNameTo($method->getName())] = $entity->{$method->getName()}();
             }
         }
