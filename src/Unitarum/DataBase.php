@@ -20,6 +20,7 @@ class DataBase implements DataBaseInterface
     public function __construct(OptionsInterface $options)
     {
         $this->pdo = new \PDO($options->getDsn());
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
     public function startTransaction()
@@ -44,7 +45,7 @@ class DataBase implements DataBaseInterface
 
         $hydrator = new SimpleHydrator();
         $insertingData = $hydrator->extract($insertingEntity);
-
+        $insertingData = array_filter($insertingData);
         /* Get real columns name from table structure */
         $columns = $this->getTableStructure($tableName);
 
@@ -54,8 +55,8 @@ class DataBase implements DataBaseInterface
         $lastInsertId = $this->insertData($clearData, $tableName);
         $insertedData = $this->selectById($lastInsertId, $columns[AUTO_INCREMENT], $tableName);
 
-        $hydrator->hydrate($insertedData, $incomeEntity);
-        return $incomeEntity;
+        $hydrator->hydrate($insertedData, $defaultEntity);
+        return $defaultEntity;
     }
 
     protected function insertData($insertingData, $tableName)
@@ -69,27 +70,7 @@ class DataBase implements DataBaseInterface
             implode(',', array_fill(0, count($insertingData), '?'))
         );
         $statement = $this->pdo->prepare($sql);
-
-        // Insert data to table
-        if (!$statement instanceof \PDOStatement) {
-            throw new DataBaseException(
-                sprintf(
-                    'Can not prepare statement! Query: %s. Data: %s',
-                    $sql,
-                    implode(',', $insertingData)
-                )
-            );
-        }
-
-        if (!$statement->execute(array_values($insertingData))) {
-            throw new DataBaseException(
-                sprintf(
-                    'Can not insert data to the table! Query: %s. Data: %s',
-                    $sql,
-                    implode(',', $insertingData)
-                )
-            );
-        }
+        $statement->execute(array_values($insertingData));
 
         return $this->pdo->lastInsertId();
     }
@@ -139,9 +120,9 @@ class DataBase implements DataBaseInterface
             $clearString = trim($value);
             $parts = explode(' ', $clearString);
             if (stristr($clearString, 'autoincrement')) {
-                $columns[AUTO_INCREMENT] = $parts[0];
+                $columns[AUTO_INCREMENT] = str_replace('`', '', $parts[0]);
             } else {
-                $columns[] = $parts[0];
+                $columns[] = str_replace('`', '', $parts[0]);
             }
         }
 

@@ -79,32 +79,6 @@ class DataBaseTest extends TestCase
         $this->dataBase->rollbackTransaction();
     }
 
-    /**
-     * @expectedException \Unitarum\Exception\DataBaseException
-     */
-    public function testInsertException()
-    {
-        $this->dataBase->startTransaction();
-        $insertData = ['email' => 'test@test.no'];
-        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
-        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
-
-        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
-        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
-    }
-
-    /**
-     * @expectedException \Unitarum\Exception\DataBaseException
-     * @expectedExceptionMessageRegExp ~Can not prepare statement! Query:.+ Data:.+~
-     */
-    public function testInsertStatementException()
-    {
-        $this->dataBase->startTransaction();
-        $insertData = [];
-        $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
-        $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
-    }
-
     public function testGetTableStructure()
     {
         $originalColumns = [
