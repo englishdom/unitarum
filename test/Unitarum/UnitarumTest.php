@@ -12,6 +12,7 @@ use Unitarum\ReaderInterface;
 use Unitarum\Unitarum;
 use UnitarumExample\Entity\Role;
 use UnitarumExample\Entity\User;
+use UnitarumTest\DataBaseTest;
 
 /**
  * @package UnitarumTest
