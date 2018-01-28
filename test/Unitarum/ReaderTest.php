@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 use Unitarum\Options;
 use Unitarum\OptionsInterface;
 use Unitarum\Reader;
-use Unitarum\ReaderInterface;
 
 /**
  * @package UnitarumTest

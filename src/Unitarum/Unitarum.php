@@ -2,6 +2,8 @@
 
 namespace Unitarum;
 
+use Unitarum\DataBase;
+use Unitarum\DataBaseInterface;
 use Unitarum\Exception\UnsupportedValueException;
 
 /**

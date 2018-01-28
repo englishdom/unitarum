@@ -8,6 +8,7 @@ use Unitarum\DataBaseInterface;
 use Unitarum\Options;
 use Unitarum\OptionsInterface;
 use UnitarumExample\Entity\User;
+use UnitarumTest\GetProtectedTrait;
 
 class DataBaseTest extends TestCase
 {
@@ -82,12 +83,11 @@ class DataBaseTest extends TestCase
     public function testGetTableStructure()
     {
         $originalColumns = [
-            AUTO_INCREMENT => 'id',
+            DataBaseInterface::AUTO_INCREMENT => 'id',
             'name',
             'email'
         ];
-        $method = self::getProtectedMethod(DataBase::class, 'getTableStructure');
-        $returnColumns = $method->invokeArgs($this->dataBase, [self::TEST_TABLE_USERS]);
+        $returnColumns = $this->dataBase->getAdapter()->getTableStructure(self::TEST_TABLE_USERS);
         $this->assertEquals($originalColumns, $returnColumns);
     }
 

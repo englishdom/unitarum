@@ -21,6 +21,12 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Security
 - Nothing
 
+## [0.3.0] - 2018-01-28
+### Fixed
+- Move sqlite to adapter
+### Added
+- Mysql adapter
+
 ## [0.2.2] - 2018-01-22
 - [#11] Removed char ` in table name.
 - [#12] Enable PDO exceptions. Removed custom exceptions from DataBase.

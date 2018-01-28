@@ -2,16 +2,21 @@
 
 namespace Unitarum;
 
-use Unitarum\Exception\DataBaseException;
-
-define('AUTO_INCREMENT', 'AUTO_INCREMENT');
+use Unitarum\Adapter\AdapterInterface;
+use Unitarum\Adapter\SqliteAdapter;
 
 class DataBase implements DataBaseInterface
 {
+
     /**
-     * @var \PDO
+     * @var AdapterInterface
      */
-    protected $pdo;
+    private $adapter;
+
+    /**
+     * @var OptionsInterface
+     */
+    private $options;
 
     /**
      * DataBase constructor.
@@ -19,21 +24,20 @@ class DataBase implements DataBaseInterface
      */
     public function __construct(OptionsInterface $options)
     {
-        $this->pdo = new \PDO($options->getDsn());
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->options = $options;
     }
 
     public function startTransaction()
     {
-        if (!$this->pdo->inTransaction()) {
-            $this->pdo->beginTransaction();
+        if (!$this->getAdapter()->getPdo()->inTransaction()) {
+            $this->getAdapter()->getPdo()->beginTransaction();
         }
     }
 
     public function rollbackTransaction()
     {
-        if ($this->pdo->inTransaction()) {
-            $this->pdo->rollBack();
+        if ($this->getAdapter()->getPdo()->inTransaction()) {
+            $this->getAdapter()->getPdo()->rollBack();
         }
     }
 
@@ -47,16 +51,37 @@ class DataBase implements DataBaseInterface
         $insertingData = $hydrator->extract($insertingEntity);
         $insertingData = array_filter($insertingData);
         /* Get real columns name from table structure */
-        $columns = $this->getTableStructure($tableName);
+        $columns = $this->getAdapter()->getTableStructure($tableName);
 
         /* Remove unused columns from data */
         $clearData = array_intersect_key($insertingData, array_flip($columns));
 
         $lastInsertId = $this->insertData($clearData, $tableName);
-        $insertedData = $this->selectById($lastInsertId, $columns[AUTO_INCREMENT], $tableName);
+        $insertedData = $this->selectById($lastInsertId, $columns[DataBaseInterface::AUTO_INCREMENT], $tableName);
 
         $hydrator->hydrate($insertedData, $defaultEntity);
         return $defaultEntity;
+    }
+
+    /**
+     * @return AdapterInterface
+     */
+    public function getAdapter(): AdapterInterface
+    {
+        if (!$this->adapter) {
+            $this->adapter = new SqliteAdapter($this->options->getDsn());
+        }
+        return $this->adapter;
+    }
+
+    /**
+     * @param AdapterInterface $adapter
+     * @return DataBase
+     */
+    public function setAdapter(AdapterInterface $adapter): self
+    {
+        $this->adapter = $adapter;
+        return $this;
     }
 
     protected function insertData($insertingData, $tableName)
@@ -69,10 +94,10 @@ class DataBase implements DataBaseInterface
             implode(',', $columnNames),
             implode(',', array_fill(0, count($insertingData), '?'))
         );
-        $statement = $this->pdo->prepare($sql);
+        $statement = $this->getAdapter()->getPdo()->prepare($sql);
         $statement->execute(array_values($insertingData));
 
-        return $this->pdo->lastInsertId();
+        return $this->getAdapter()->getPdo()->lastInsertId();
     }
 
     protected function selectById($identifier, $fieldName, $tableName)
@@ -82,7 +107,7 @@ class DataBase implements DataBaseInterface
             $tableName,
             $fieldName
         );
-        $statement = $this->pdo->prepare($sql);
+        $statement = $this->getAdapter()->getPdo()->prepare($sql);
         $statement->execute([$identifier]);
         return $statement->fetch(\PDO::FETCH_ASSOC);
     }
@@ -100,32 +125,5 @@ class DataBase implements DataBaseInterface
         $secondArray = array_filter($hydrator->extract($changedEntity));
         $mergedArray = array_merge($firstArray, $secondArray);
         return $hydrator->hydrate($mergedArray, new $entityName());
-    }
-
-    protected function getTableStructure($tableName): array
-    {
-        $sql = sprintf(
-            'SELECT sql FROM sqlite_master WHERE tbl_name = "%s"',
-            $tableName
-        );
-
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute();
-        $result = $statement->fetch(\PDO::FETCH_ASSOC);
-
-        $columns = [];
-        preg_match('~\((.+)\)~si', $result['sql'], $matches);
-        $array = explode(',', $matches[1]);
-        foreach ($array as $value) {
-            $clearString = trim($value);
-            $parts = explode(' ', $clearString);
-            if (stristr($clearString, 'autoincrement')) {
-                $columns[AUTO_INCREMENT] = str_replace('`', '', $parts[0]);
-            } else {
-                $columns[] = str_replace('`', '', $parts[0]);
-            }
-        }
-
-        return $columns;
     }
 }
