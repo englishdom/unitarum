@@ -21,6 +21,10 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Security
 - Nothing
 
+## [0.3.1] - 2018-01-29
+### Fixed
+- Get all mysql rows from schema
+
 ## [0.3.0] - 2018-01-28
 ### Fixed
 - Move sqlite to adapter

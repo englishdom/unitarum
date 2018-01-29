@@ -30,7 +30,7 @@ class MysqlAdapter implements AdapterInterface
 
         $statement = $this->pdo->prepare($sql);
         $statement->execute();
-        $result = $statement->fetch(\PDO::FETCH_ASSOC);
+        $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
         $columns = [];
         foreach($result as $row) {
