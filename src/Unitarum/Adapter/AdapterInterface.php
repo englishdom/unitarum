@@ -2,8 +2,6 @@
 
 namespace Unitarum\Adapter;
 
-use Unitarum\DataBaseInterface;
-
 interface AdapterInterface
 {
 
@@ -15,4 +13,6 @@ interface AdapterInterface
     public function getPdo(): \PDO;
 
     public function getTableStructure($tableName): array;
+
+    public function truncateTables(array $tables);
 }

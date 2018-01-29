@@ -51,4 +51,9 @@ class SqliteAdapter implements AdapterInterface
 
         return $columns;
     }
+
+    public function truncateTables(array $tables)
+    {
+        // TODO: Implement truncateTables() method.
+    }
 }
