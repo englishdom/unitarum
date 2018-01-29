@@ -19,6 +19,11 @@ class DataBase implements DataBaseInterface
     private $options;
 
     /**
+     * @var array
+     */
+    private $executeTables;
+
+    /**
      * DataBase constructor.
      * @param OptionsInterface $options
      */
@@ -45,6 +50,7 @@ class DataBase implements DataBaseInterface
     {
         $defaultEntity = reset($defaultData);
         $tableName = key($defaultData);
+        $this->executeTables[] = $tableName;
         $insertingEntity = $this->mergeArrays($defaultEntity, $incomeEntity);
 
         $hydrator = new SimpleHydrator();
@@ -84,6 +90,11 @@ class DataBase implements DataBaseInterface
         return $this;
     }
 
+    public function truncateTables()
+    {
+        $this->adapter->truncateTables($this->executeTables);
+    }
+
     protected function insertData($insertingData, $tableName)
     {
         /* Prepare sql */
@@ -109,7 +120,8 @@ class DataBase implements DataBaseInterface
         );
         $statement = $this->getAdapter()->getPdo()->prepare($sql);
         $statement->execute([$identifier]);
-        return $statement->fetch(\PDO::FETCH_ASSOC);
+        $result = $statement->fetch(\PDO::FETCH_ASSOC);
+        return $result;
     }
 
     protected function mergeArrays($originalEntity, $changedEntity)

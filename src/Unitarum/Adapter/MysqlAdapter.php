@@ -43,4 +43,16 @@ class MysqlAdapter implements AdapterInterface
 
         return $columns;
     }
+
+    public function truncateTables(array $tables)
+    {
+        foreach ($tables as $table) {
+            $sql = sprintf(
+                'TRUNCATE `%s`',
+                $table
+            );
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute();
+        }
+    }
 }
