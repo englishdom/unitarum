@@ -19,11 +19,6 @@ class DataBase implements DataBaseInterface
     private $options;
 
     /**
-     * @var array
-     */
-    private $executeTables;
-
-    /**
      * DataBase constructor.
      * @param OptionsInterface $options
      */
@@ -50,7 +45,6 @@ class DataBase implements DataBaseInterface
     {
         $defaultEntity = reset($defaultData);
         $tableName = key($defaultData);
-        $this->executeTables[] = $tableName;
         $insertingEntity = $this->mergeArrays($defaultEntity, $incomeEntity);
 
         $hydrator = new SimpleHydrator();
@@ -74,9 +68,6 @@ class DataBase implements DataBaseInterface
      */
     public function getAdapter(): AdapterInterface
     {
-        if (!$this->adapter) {
-            $this->adapter = new SqliteAdapter($this->options->getDsn());
-        }
         return $this->adapter;
     }
 
@@ -88,11 +79,6 @@ class DataBase implements DataBaseInterface
     {
         $this->adapter = $adapter;
         return $this;
-    }
-
-    public function truncateTables()
-    {
-        $this->adapter->truncateTables($this->executeTables);
     }
 
     protected function insertData($insertingData, $tableName)

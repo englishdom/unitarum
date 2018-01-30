@@ -11,9 +11,9 @@ class MysqlAdapter implements AdapterInterface
      */
     private $pdo;
 
-    public function __construct($dsn, $userName = null, $password = null)
+    public function __construct(\PDO $pdo)
     {
-        $this->pdo = new \PDO($dsn, $userName, $password);
+        $this->pdo = $pdo;
     }
 
     public function getPdo(): \PDO
@@ -42,17 +42,5 @@ class MysqlAdapter implements AdapterInterface
         }
 
         return $columns;
-    }
-
-    public function truncateTables(array $tables)
-    {
-        foreach ($tables as $table) {
-            $sql = sprintf(
-                'TRUNCATE `%s`',
-                $table
-            );
-            $statement = $this->pdo->prepare($sql);
-            $statement->execute();
-        }
     }
 }
