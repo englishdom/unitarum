@@ -3,12 +3,12 @@
 namespace UnitarumTest;
 
 use PHPUnit\Framework\TestCase;
+use Unitarum\Adapter\SqliteAdapter;
 use Unitarum\DataBase;
 use Unitarum\DataBaseInterface;
 use Unitarum\Options;
 use Unitarum\OptionsInterface;
 use UnitarumExample\Entity\User;
-use UnitarumTest\GetProtectedTrait;
 
 class DataBaseTest extends TestCase
 {
@@ -24,8 +24,11 @@ class DataBaseTest extends TestCase
 
     public function setUp()
     {
-        $options = new Options([OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db']);
+        $options = new Options([]);
         $this->dataBase = new DataBase($options);
+        $pdo = new \PDO('sqlite:data/sqlite.db', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
+        $adapter = new SqliteAdapter($pdo);
+        $this->dataBase->setAdapter($adapter);
     }
 
     public function testMergeArrays() {

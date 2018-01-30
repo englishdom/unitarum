@@ -13,11 +13,11 @@ class SqliteAdapter implements AdapterInterface
 
     /**
      * SqliteAdapter constructor.
+     * @param \PDO $pdo
      */
-    public function __construct($dsn)
+    public function __construct(\PDO $pdo)
     {
-        $this->pdo = new \PDO($dsn);
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->pdo = $pdo;
     }
 
     public function getPdo(): \PDO
@@ -50,10 +50,5 @@ class SqliteAdapter implements AdapterInterface
         }
 
         return $columns;
-    }
-
-    public function truncateTables(array $tables)
-    {
-        // TODO: Implement truncateTables() method.
     }
 }

@@ -3,6 +3,7 @@
 namespace UnitarumTest;
 
 use PHPUnit\Framework\TestCase;
+use Unitarum\Adapter\SqliteAdapter;
 use Unitarum\DataBase;
 use Unitarum\DataBaseInterface;
 use Unitarum\Options;
@@ -68,7 +69,7 @@ class UnitarumTest extends TestCase
 
     public function testGetDefaultDataBase()
     {
-        $unitarum = new Unitarum(new Options([OptionsInterface::DSN_OPTION => 'sqlite::memory:']));
+        $unitarum = new Unitarum(new Options([]));
         $this->assertInstanceOf(DataBaseInterface::class, $unitarum->getDataBase());
     }
 
@@ -77,8 +78,10 @@ class UnitarumTest extends TestCase
     {
         $unitarum = new Unitarum([
             OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data'),
-            OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
         ]);
+        $adapter = new SqliteAdapter(new \PDO('sqlite:data/sqlite.db', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]));
+        $unitarum->getDataBase()->setAdapter($adapter);
+
         $unitarum->getDataBase()->startTransaction();
 
         $userEntity = new User();
@@ -93,9 +96,10 @@ class UnitarumTest extends TestCase
     public function testChainOfMethods()
     {
         $unitarum = new Unitarum([
-            OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data'),
-            OptionsInterface::DSN_OPTION => 'sqlite:data/sqlite.db',
+            OptionsInterface::FIXTURE_FOLDER_OPTION => realpath(__DIR__ . DIRECTORY_SEPARATOR . '../data')
         ]);
+        $adapter = new SqliteAdapter(new \PDO('sqlite:data/sqlite.db', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]));
+        $unitarum->getDataBase()->setAdapter($adapter);
 
         $unitarum->getDataBase()->startTransaction();
 
