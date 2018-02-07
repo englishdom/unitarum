@@ -7,7 +7,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ## [Unreleased] - YYYY-MM-DD
 
 ### Added
-- Nothing
+- Method for TRUNCATE tables
 
 ### Deprecated
 - Nothing
