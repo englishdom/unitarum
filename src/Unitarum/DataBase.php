@@ -18,6 +18,8 @@ class DataBase implements DataBaseInterface
      */
     private $options;
 
+    private $tables = [];
+
     /**
      * DataBase constructor.
      * @param OptionsInterface $options
@@ -41,10 +43,19 @@ class DataBase implements DataBaseInterface
         }
     }
 
+    public function truncate()
+    {
+        foreach ($this->tables as $tableName) {
+            $this->getAdapter()->getPdo()->exec(sprintf('TRUNCATE TABLE `%s`', $tableName));
+        }
+        $this->tables = [];
+    }
+
     public function execute($defaultData, $incomeEntity, $tableAlias)
     {
         $defaultEntity = reset($defaultData);
         $tableName = key($defaultData);
+        $this->tables[] = $tableName;
         $insertingEntity = $this->mergeArrays($defaultEntity, $incomeEntity);
 
         $hydrator = new SimpleHydrator();
