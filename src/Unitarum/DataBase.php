@@ -46,6 +46,7 @@ class DataBase implements DataBaseInterface
     public function truncate()
     {
         foreach ($this->tables as $tableName) {
+            $this->getAdapter()->getPdo()->exec('SET FOREIGN_KEY_CHECKS=0;');
             $this->getAdapter()->getPdo()->exec(sprintf('TRUNCATE TABLE `%s`', $tableName));
         }
         $this->tables = [];

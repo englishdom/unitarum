@@ -31,4 +31,6 @@ interface DataBaseInterface
      * @return DataBase
      */
     public function setAdapter(AdapterInterface $adapter);
+
+    public function truncate();
 }
