@@ -131,7 +131,7 @@ class DataBase implements DataBaseInterface
         $hydrator = new SimpleHydrator();
         $entityName = get_class($originalEntity);
 
-        $firstArray = $hydrator->extract($originalEntity);
+        $firstArray = array_filter($hydrator->extract($originalEntity));
         $secondArray = array_filter($hydrator->extract($changedEntity));
         $mergedArray = array_merge($firstArray, $secondArray);
         return $hydrator->hydrate($mergedArray, new $entityName());
