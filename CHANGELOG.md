@@ -7,7 +7,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ## [Unreleased] - YYYY-MM-DD
 
 ### Added
-- Method for TRUNCATE tables
+- Nothing
 
 ### Deprecated
 - Nothing
@@ -20,6 +20,10 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ### Security
 - Nothing
+
+## [0.3.3] - 2018-02-13
+### Added
+- Method for TRUNCATE tables
 
 ## [0.3.1] - 2018-01-29
 ### Fixed
