@@ -93,14 +93,18 @@ class DatabaseTest extends TestCase
     public function setUp()
     {
         self::$unitarum->getDataBase()->startTransaction();
+        // or notning
     }
     
     public function tearDown()
     {
         self::$unitarum->getDataBase()->rollbackTransaction();
+        //or
+        self::$unitarun->truncate();
     }
 }
 ```
+If you don't want to use transaction, you can use TRUNCATE data.
 
 ### Setup fixtures
 In the test you can apply fixtures and change any data from it.
