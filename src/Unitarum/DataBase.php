@@ -61,7 +61,9 @@ class DataBase implements DataBaseInterface
 
         $hydrator = new SimpleHydrator();
         $insertingData = $hydrator->extract($insertingEntity);
-        $insertingData = array_filter($insertingData);
+        $insertingData = array_filter($insertingData, function($value) {
+            return $value !== null;
+        });
         /* Get real columns name from table structure */
         $columns = $this->getAdapter()->getTableStructure($tableName);
 
