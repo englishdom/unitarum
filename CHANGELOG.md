@@ -21,6 +21,10 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Security
 - Nothing
 
+## [0.3.5] - 2018-06-26
+### Fixed
+- Fix set 0 for fixtures
+
 ## [0.3.4] - 2018-06-13
 ### Fixed
 - Fix set 0 for fixtures
