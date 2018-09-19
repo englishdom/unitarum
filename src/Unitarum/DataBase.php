@@ -21,7 +21,7 @@ class DataBase implements DataBaseInterface
     /**
      * @var array
      */
-    private $tables = [];
+    protected $tables = [];
 
     /**
      * DataBase constructor.
@@ -150,7 +150,7 @@ class DataBase implements DataBaseInterface
      * @param array $tables
      * @return mixed
      */
-    public function setTables(array $tables)
+    public function addTables(array $tables)
     {
         $this->tables = array_merge($this->tables, $tables);
     }

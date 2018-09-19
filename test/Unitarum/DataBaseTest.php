@@ -94,6 +94,14 @@ class DataBaseTest extends TestCase
         $this->assertEquals($originalColumns, $returnColumns);
     }
 
+    public function testAddTables()
+    {
+        $this->dataBase->addTables(['users', 'words']);
+        $this->dataBase->addTables(['test']);
+        $property = $this->getProtectedProperty(DataBase::class, 'tables');
+        $this->assertEquals(['users', 'words', 'test'], $property->getValue($this->dataBase));
+    }
+
     public function tearDown()
     {
         $this->dataBase->rollbackTransaction();
