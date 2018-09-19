@@ -18,7 +18,10 @@ class DataBase implements DataBaseInterface
      */
     private $options;
 
-    private $tables = [];
+    /**
+     * @var array
+     */
+    protected $tables = [];
 
     /**
      * DataBase constructor.
@@ -141,5 +144,14 @@ class DataBase implements DataBaseInterface
         });
         $mergedArray = array_merge($firstArray, $secondArray);
         return $hydrator->hydrate($mergedArray, new $entityName());
+    }
+
+    /**
+     * @param array $tables
+     * @return mixed
+     */
+    public function addTables(array $tables)
+    {
+        $this->tables = array_merge($this->tables, $tables);
     }
 }

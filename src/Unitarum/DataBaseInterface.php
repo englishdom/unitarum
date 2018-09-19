@@ -33,4 +33,10 @@ interface DataBaseInterface
     public function setAdapter(AdapterInterface $adapter);
 
     public function truncate();
+
+    /**
+     * @param array $tables
+     * @return mixed
+     */
+    public function addTables(array $tables);
 }
