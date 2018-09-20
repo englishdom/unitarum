@@ -11,6 +11,7 @@ class User
     protected $id;
     protected $name;
     protected $email;
+    protected $md5Hash;
 
     /**
      * @return mixed
@@ -58,5 +59,21 @@ class User
     public function setEmail($email): void
     {
         $this->email = $email;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMd5Hash()
+    {
+        return $this->md5Hash;
+    }
+
+    /**
+     * @param mixed $md5Hash
+     */
+    public function setMd5Hash($md5Hash): void
+    {
+        $this->md5Hash = $md5Hash;
     }
 }

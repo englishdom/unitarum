@@ -32,6 +32,14 @@ class UnitarumTest extends TestCase
         $this->assertInstanceOf(OptionsInterface::class, $unitarum->getOptions());
     }
 
+    public function testWhiteListOption()
+    {
+        $options = ['md5Hash' => 'md5_hash'];
+        $unitarum = new Unitarum([Options::WHITE_LIST_FOR_FIELD_IN_DB => $options]);
+        $returnedOptions = $unitarum->getOptions()->getWhiteList();
+        $this->assertEquals($options, $returnedOptions);
+    }
+
     /**
      * @dataProvider unsupportOptionsTypesData
      * @expectedException \Unitarum\Exception\UnsupportedValueException

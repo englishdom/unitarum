@@ -22,7 +22,7 @@ class SimpleHydratorTest extends TestCase
         $hydrator = new SimpleHydrator();
         $result = $hydrator->extract($entity);
 
-        $this->assertEquals(['name' => 'Test', 'id' => null, 'email' => null], $result);
+        $this->assertEquals(['name' => 'Test', 'id' => null, 'email' => null, 'md_5_hash' => null], $result);
     }
 
     public function testHydrate()
@@ -58,5 +58,15 @@ class SimpleHydratorTest extends TestCase
         $return = $method->invokeArgs($hydrator, ['user_id']);
 
         $this->assertEquals('setUserId', $return);
+    }
+
+    public function testWhiteListForConvertNameTo()
+    {
+        $options = ['md5Hash' => 'md5_hash'];
+        $hydrator = new SimpleHydrator($options);
+        $method = $this->getProtectedMethod(SimpleHydrator::class, 'convertNameTo');
+        $return = $method->invokeArgs($hydrator, ['getMd5Hash']);
+
+        $this->assertEquals('md5_hash', $return);
     }
 }

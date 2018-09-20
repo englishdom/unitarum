@@ -11,6 +11,13 @@ class SimpleHydrator
     const METHOD_GET_PREFIX = 'get';
     const METHOD_SET_PREFIX = 'set';
 
+    private $whiteList;
+
+    public function __construct($whiteList = null)
+    {
+        $this->whiteList = $whiteList;
+    }
+
     public function extract($entity): array
     {
         $array = [];
@@ -46,8 +53,11 @@ class SimpleHydrator
     protected function convertNameTo($name): string
     {
         $cleanName = lcfirst(substr($name, 3));
-        $convertedName = strtolower(preg_replace('~[^a-z](A-Z)*~', '_$0', $cleanName));
-
+        if ($this->whiteList && is_array($this->whiteList) && array_key_exists($cleanName, $this->whiteList)) {
+            $convertedName = $this->whiteList[$cleanName];
+        } else {
+            $convertedName = strtolower(preg_replace('~[^a-z](A-Z)*~', '_$0', $cleanName));
+        }
         return $convertedName;
     }
 }

@@ -61,8 +61,7 @@ class DataBase implements DataBaseInterface
         $tableName = key($defaultData);
         $this->tables[] = $tableName;
         $insertingEntity = $this->mergeArrays($defaultEntity, $incomeEntity);
-
-        $hydrator = new SimpleHydrator();
+        $hydrator = new SimpleHydrator($this->options->getWhiteList());
         $insertingData = $hydrator->extract($insertingEntity);
         $insertingData = array_filter($insertingData, function($value) {
             return $value !== null;
@@ -133,7 +132,7 @@ class DataBase implements DataBaseInterface
             return $originalEntity;
         }
 
-        $hydrator = new SimpleHydrator();
+        $hydrator = new SimpleHydrator($this->options->getWhiteList());
         $entityName = get_class($originalEntity);
 
         $firstArray = array_filter($hydrator->extract($originalEntity), function($value) {

@@ -67,9 +67,10 @@ class DataBaseTest extends TestCase
         $this->dataBase->startTransaction();
 
         $insertData = [
-            'id' => 100,
+            'id' => '100',
             'email' => 'test@test.no',
-            'name' => 'TestName'
+            'name' => 'TestName',
+            'md5_hash'=> ''
         ];
         $methodInsert = self::getProtectedMethod(DataBase::class, 'insertData');
         $lastInsertId = $methodInsert->invokeArgs($this->dataBase, [$insertData, self::TEST_TABLE_USERS]);
@@ -88,7 +89,8 @@ class DataBaseTest extends TestCase
         $originalColumns = [
             DataBaseInterface::AUTO_INCREMENT => 'id',
             'name',
-            'email'
+            'email',
+            'md5_hash'
         ];
         $returnColumns = $this->dataBase->getAdapter()->getTableStructure(self::TEST_TABLE_USERS);
         $this->assertEquals($originalColumns, $returnColumns);
