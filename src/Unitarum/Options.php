@@ -9,11 +9,15 @@ namespace Unitarum;
 class Options implements OptionsInterface
 {
     private $fixtureFolder;
+    private $whiteList;
 
     public function __construct(array $options)
     {
         if (isset($options[self::FIXTURE_FOLDER_OPTION])) {
             $this->setFixtureFolder($options[self::FIXTURE_FOLDER_OPTION]);
+        }
+        if (isset($options[self::WHITE_LIST_FOR_FIELD_IN_DB])) {
+            $this->setWhiteList($options[self::WHITE_LIST_FOR_FIELD_IN_DB]);
         }
     }
 
@@ -32,6 +36,23 @@ class Options implements OptionsInterface
     public function setFixtureFolder($fixtureFolder): self
     {
         $this->fixtureFolder = $fixtureFolder;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWhiteList()
+    {
+        return $this->whiteList;
+    }
+
+    /**
+     * @param mixed $whiteList
+     */
+    public function setWhiteList($whiteList): self
+    {
+        $this->whiteList = $whiteList;
         return $this;
     }
 }
