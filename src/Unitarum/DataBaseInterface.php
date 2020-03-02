@@ -39,4 +39,6 @@ interface DataBaseInterface
      * @return mixed
      */
     public function addTables(array $tables);
+
+    public function setTables(array $tables);
 }

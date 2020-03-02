@@ -153,4 +153,9 @@ class DataBase implements DataBaseInterface
     {
         $this->tables = array_merge($this->tables, $tables);
     }
+
+    public function setTables(array $tables)
+    {
+        $this->tables = $tables;
+    }
 }
