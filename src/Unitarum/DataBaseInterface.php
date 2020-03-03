@@ -41,4 +41,6 @@ interface DataBaseInterface
     public function addTables(array $tables);
 
     public function setTables(array $tables);
+
+    public function truncateAllWithout(array $tables): ?bool;
 }

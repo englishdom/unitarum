@@ -55,6 +55,25 @@ class DataBase implements DataBaseInterface
         $this->tables = [];
     }
 
+    public function truncateAllWithout(array $tables = []): ?bool
+    {
+        $existTables = [];
+        $this->getAdapter()->getPdo()->exec('SET FOREIGN_KEY_CHECKS=0;');
+        $statement = $this->getAdapter()->getPdo()->prepare('SHOW TABLES');
+        $results = $statement->fetchAll();
+        foreach ($results as $result) {
+            $existTables[] = $result[0];
+        }
+        if (empty($existTables)) {
+            $this->truncate();
+            return null;
+        }
+        $truncateTables = array_diff($existTables, $tables);
+        $this->setTables($truncateTables);
+        $this->truncate();
+        return true;
+    }
+
     public function execute($defaultData, $incomeEntity, $tableAlias)
     {
         $defaultEntity = reset($defaultData);
