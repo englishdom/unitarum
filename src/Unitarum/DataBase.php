@@ -60,7 +60,8 @@ class DataBase implements DataBaseInterface
         $existTables = [];
         $this->getAdapter()->getPdo()->exec('SET FOREIGN_KEY_CHECKS=0;');
         $statement = $this->getAdapter()->getPdo()->prepare('SHOW TABLES');
-        $results = $statement->fetchAll();
+        $statement->execute();
+        $results = $statement->fetchAll(\PDO::FETCH_NUM);
         foreach ($results as $result) {
             $existTables[] = $result[0];
         }
